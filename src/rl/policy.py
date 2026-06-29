@@ -15,7 +15,14 @@ class PolicyNetwork(nn.Module):
         )
         self.log_std = nn.Parameter(T.zeros(output_dim))
 
-    def forward(self, obs):
+    def forward(self, obs: T.Tensor) -> Normal:
+        """
+        Compute the policy distribution pi(a|s) for a given observation.
+        Args:
+        - obs (T.Tensor, shape (batch, 6)) : observation vector.
+        Returns:
+        - Normal distribution over actions, shape (batch, 3).
+        """
         mean = self.network(obs)
         log_std = self.log_std
         return Normal(mean, T.exp(log_std))

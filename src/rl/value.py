@@ -11,6 +11,7 @@ class ValueNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(128, 1),
         )
+        
     def forward(self, obs: T.Tensor) -> T.Tensor:
         """
         Compute the state value V(s) for a given observation.
