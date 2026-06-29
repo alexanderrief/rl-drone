@@ -56,10 +56,10 @@ class FollowMarkerEnv(BaseAviary):
         """
         Build the 6-dim observation vector for the agent.
         Returns:
-          - np.ndarray, shape (6,), dtype = float32
-          - Concatenated of:
-            - rel_pos (3,) : drone position - marker position [m]
-            - vel     (3,) : drone velocity [m/s]
+        - np.ndarray, shape (6,), dtype = float32
+        - Concatenated of:
+          - rel_pos (3,) : drone position - marker position [m]
+          - vel     (3,) : drone velocity [m/s]
         """
         state = self._getDroneStateVector(0)
         rel_pos = (state[0:3] - self.marker_pos).astype(np.float32)
@@ -70,8 +70,8 @@ class FollowMarkerEnv(BaseAviary):
         """
         Compute the scalar reward for the current timestep.
         Returns:
-          - float (64-bit)
-          - Negative Euclidean distance between drone and marker [m].
+        - float (64-bit)
+        - Negative Euclidean distance between drone and marker [m].
             Reward is maximized when the drone reaches the marker (reward -> 0).
         """
         state = self._getDroneStateVector(0)
@@ -83,12 +83,12 @@ class FollowMarkerEnv(BaseAviary):
         """
         Check whether the episode should terminate early.
         Returns:
-          - bool
-          - True if the drone leaves the allowed flight volume:
-            - z < 0.05  : drone has crashed (below ground)
-            - z > 3.0   : drone has flown too high
-            - |x| > 2.5 : drone left horizontal boundary
-            - |y| > 2.5 : drone left horizontal boundary
+        - bool
+        - True if the drone leaves the allowed flight volume:
+          - z < 0.05  : drone has crashed (below ground)
+          - z > 3.0   : drone has flown too high
+          - |x| > 2.5 : drone left horizontal boundary
+          - |y| > 2.5 : drone left horizontal boundary
         """
         state = self._getDroneStateVector(0)
         x, y, z = state[0], state[1], state[2]
@@ -109,11 +109,11 @@ class FollowMarkerEnv(BaseAviary):
         """
         Reset the environment and randomize the marker position.
         Args:
-          - seed    (int,  optional) : RNG seed passed to the base class.
-          - options (dict, optional) : additional options passed to the base class.
+        - seed    (int,  optional) : RNG seed passed to the base class.
+        - options (dict, optional) : additional options passed to the base class.
         Returns:
-          - obs  (np.ndarray) : initial observation after reset.
-          - info (dict)       : info from the base class.
+        - obs  (np.ndarray) : initial observation after reset.
+        - info (dict)       : info from the base class.
         """
         self.marker_pos = self.rng.uniform(
             low  = [-2.0, -2.0, 0.3],
@@ -127,13 +127,13 @@ class FollowMarkerEnv(BaseAviary):
         """
         Advance the simulation by one control step.
         Args:
-          - action (np.ndarray, shape (3,)) : relative position offset [dx, dy, dz] [m].
+        - action (np.ndarray, shape (3,)) : relative position offset [dx, dy, dz] [m].
         Returns:
-          - obs        (np.ndarray) : new observation vector, shape (6,).
-          - reward     (float)      : scalar reward for this step.
-          - terminated (bool)       : True if the drone left the flight volume.
-          - truncated  (bool)       : True if episode was cut short (always False here).
-          - info       (dict)       : info from the base class.
+        - obs        (np.ndarray) : new observation vector, shape (6,).
+        - reward     (float)      : scalar reward for this step.
+        - terminated (bool)       : True if the drone left the flight volume.
+        - truncated  (bool)       : True if episode was cut short (always False here).
+        - info       (dict)       : info from the base class.
         """
         obs, _, terminated, truncated, info = super().step(action)
         reward     = self._computeReward()
@@ -144,8 +144,8 @@ class FollowMarkerEnv(BaseAviary):
         """
         Define the continuous action space.
         Returns:
-          - Box, shape (3,), dtype = float32
-          - Each action is a relative position offset [dx, dy, dz] [m].
+        - Box, shape (3,), dtype = float32
+        - Each action is a relative position offset [dx, dy, dz] [m].
         """
         return Box(low=np.array([-1, -1, -1]), high=np.array([1, 1, 1]), dtype=np.float32)
     
@@ -153,8 +153,8 @@ class FollowMarkerEnv(BaseAviary):
         """
         Define the continuous observation space.
         Returns:
-          - Box, shape (6,), dtype = float32
-          - Unbounded; mirrors the output of _computeObs().
+        - Box, shape (6,), dtype = float32
+        - Unbounded; mirrors the output of _computeObs().
         """
         return Box(low=np.full(6, -np.inf), high=np.full(6, np.inf), dtype=np.float32)
     
@@ -162,9 +162,9 @@ class FollowMarkerEnv(BaseAviary):
         """
         Convert a relative position offset into motor RPMs via PID control.
         Args:
-          - action (np.ndarray, shape (3,)) : relative position offset [dx, dy, dz] [m].
+        - action (np.ndarray, shape (3,)) : relative position offset [dx, dy, dz] [m].
         Returns:
-          - rpm (np.ndarray, shape (4,)) : target RPMs for each rotor.
+        - rpm (np.ndarray, shape (4,)) : target RPMs for each rotor.
         """
         state       = self._getDroneStateVector(0)
         destination = state[0:3] + action
