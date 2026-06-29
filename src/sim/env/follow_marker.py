@@ -7,7 +7,7 @@ from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 
 class FollowMarkerEnv(BaseAviary):
     """
-    A drone learns to fly to a stationary marker.
+    A drone learns to fly to a stationary marker using ground truth.
       - Observation: relative position (drone - marker) + drone velocity, shape (6,)
       - Action:      relative position offset [dx, dy, dz]
       - Reward:      negative distance to marker
@@ -24,7 +24,7 @@ class FollowMarkerEnv(BaseAviary):
         ctrl_freq        : int               = 30,
         gui              : bool              = False,
         record           : bool              = False,
-        obstacles        : bool              = True,
+        obstacles        : bool              = False,
         vision_attributes: bool              = False,
         output_folder    : str               = "results",
     ):

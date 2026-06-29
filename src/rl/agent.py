@@ -3,10 +3,10 @@ import torch as T
 import numpy as np
 from datetime import datetime
 
-from buffer import Buffer
-from policy import PolicyNetwork
-from value import ValueNetwork
-from sim.env import FollowMarkerEnv
+from src.rl.buffer import Buffer
+from src.rl.policy import PolicyNetwork
+from src.rl.value import ValueNetwork
+from src.sim.env.follow_marker import FollowMarkerEnv
 
 
 class Agent:
@@ -25,7 +25,7 @@ class Agent:
         """
         Initialize the PPO agent.
         Args:
-        - env          (FollowMarkerEnv) : the simulation environment.
+        - env          (FollowMarkerEnvEnv) : the simulation environment.
         - obs_dim      (int)             : dimension of the observation vector.
         - action_dim   (int)             : dimension of the action vector.
         - epsilon      (float)           : PPO clip range for the policy update.
@@ -135,8 +135,9 @@ class Agent:
         """
         advantages = self.compute_advantages(self.buffer.rewards, self.buffer.values, self.buffer.dones)
         # Standardize advantages to zero mean and unit variance.
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        standard_advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         advantages = advantages.to(self.device)
+        standard_advantages = standard_advantages.to(self.device)
 
         for _ in range(batch_epochs):
             observations, actions, log_probs, values, _, _, batches = self.buffer.generate_batches()
@@ -150,9 +151,10 @@ class Agent:
                 log_prob_new = pi.log_prob(actions[batch]).sum(-1)
                 log_prob_old = log_probs[batch]
                 ratio        = T.exp(log_prob_new - log_prob_old)
+                standard_adv = standard_advantages[batch]
                 adv          = advantages[batch]
 
-                actor_loss  = -T.min(ratio * adv, T.clamp(ratio, 1 - self.epsilon, 1 + self.epsilon) * adv).mean()
+                actor_loss  = -T.min(ratio * standard_adv, T.clamp(ratio, 1 - self.epsilon, 1 + self.epsilon) * standard_adv).mean()
                 values_new  = self.value(observations[batch]).squeeze()
                 returns     = (adv + values[batch]).detach()
                 critic_loss = (returns - values_new).pow(2).mean()
@@ -168,7 +170,7 @@ class Agent:
                 self.policy_opt.step()
                 self.value_opt.step()
 
-    def save(self, run_name: str | None = None):
+    def save(self, run_name: str | None = None) -> str:
         """
         Save policy and value network weights to disk.
         Args:
@@ -180,8 +182,9 @@ class Agent:
         T.save(self.policy.state_dict(), f"{path}/policy.pt")
         T.save(self.value.state_dict(), f"{path}/value.pt")
         print(f"Saved to {path}")
+        return path
 
-    def load(self, run_name: str | None = None):
+    def load(self, run_name: str | None = None) -> str | None:
         """
         Load policy and value network weights from disk.
         Args:
@@ -192,14 +195,15 @@ class Agent:
         else:
             if not os.path.exists("parameters") or not os.listdir("parameters"):
                 print("No parameters found, starting fresh")
-                return
+                return 
             runs = sorted(os.listdir("parameters"), key=lambda r: os.path.getmtime(f"parameters/{r}"))
             path = f"parameters/{runs[-1]}"
         print(f"Loading from {path}")
         self.policy.load_state_dict(T.load(f"{path}/policy.pt"))
         self.value.load_state_dict(T.load(f"{path}/value.pt"))
+        return path
 
-    def info(self) -> None:
+    def info(self, epoch: int, total_epochs: int) -> None:
         crashes          = int(sum(self.buffer.dones))
         mean_reward      = float(np.mean(self.buffer.rewards)) if self.buffer.rewards else 0.0
         mean_value       = float(np.mean(self.buffer.values))  if self.buffer.values  else 0.0
@@ -210,13 +214,14 @@ class Agent:
             entropy = self.policy(obs_t).entropy().sum(-1).mean().item()
 
         print(
-            f"  ┌─────────────────────────────┐\n"
-            f"  │        Rollout Summary      │\n"
-            f"  ├─────────────────────────────┤\n"
-            f"  │  Mean Reward    {mean_reward:+8.3f}      │\n"
-            f"  │  Mean Value     {mean_value:+8.3f}      │\n"
-            f"  │  Entropy        {entropy:8.3f}      │\n"
-            f"  │  Crashes        {crashes:8d}      │\n"
-            f"  │  Mean Ep. Len   {mean_episode_len:8.0f} steps │\n"
-            f"  └─────────────────────────────┘"
-        )
+    f"  ┌─────────────────────────────┐\n"
+    f"  │   Rollout  {epoch:>4d} / {total_epochs:<4d}      │\n"
+    f"  ├─────────────────────────────┤\n"
+    f"  │  Mean Reward    {mean_reward:+8.3f}    │\n"
+    f"  │  Mean Value     {mean_value:+8.3f}    │\n"
+    f"  │  Entropy        {entropy:8.3f}    │\n"
+    f"  │  Crashes        {crashes:8d}    │\n"
+    f"  │  Mean Ep. Len {mean_episode_len:8.0f} steps│\n"
+    f"  └─────────────────────────────┘"
+)
+
