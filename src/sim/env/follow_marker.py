@@ -71,13 +71,24 @@ class FollowMarkerEnv(BaseAviary):
         Compute the scalar reward for the current timestep.
         Returns:
         - float (64-bit)
-        - Negative Euclidean distance between drone and marker [m].
-            Reward is maximized when the drone reaches the marker (reward -> 0).
+        - Negative distance to marker, penalized by lateral approach direction.
+        Reward is maximized when the drone reaches the marker (reward -> 0).
         """
         state = self._getDroneStateVector(0)
-        pos = state[0:3]
-        dist = np.linalg.norm(pos - self.marker_pos)
-        return float(-dist)
+
+        pos      = state[0:3]
+        velocity = state[10:13]
+        dist     = np.linalg.norm(pos - self.marker_pos)
+        speed    = np.linalg.norm(velocity)
+
+        if speed > 1e-3:
+            displacement      = pos - self.marker_pos
+            vel_dir           = velocity / speed
+            projection        = np.dot(displacement, vel_dir)
+            approach_weight   = 0.1 * (1 - np.exp(-dist * 10))
+            return float(-(dist + approach_weight * projection))
+        else:
+            return float(-dist)
 
     def _computeTerminated(self) -> bool:
         """
