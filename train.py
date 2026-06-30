@@ -13,11 +13,12 @@ args = parser.parse_args()
 epochs       = 500
 batch_epochs = 4
 
-EnvClass = VisualFollowMarkerEnv if args.visual else FollowMarkerEnv
-obs_dim  = 3 if args.visual else 6
+EnvClass   = VisualFollowMarkerEnv if args.visual else FollowMarkerEnv
+obs_dim    = 3 if args.visual else 6
+action_dim = 4 if args.visual else 3
 
 env   = EnvClass()
-agent = Agent(env, obs_dim=obs_dim, action_dim=3)
+agent = Agent(env, obs_dim=obs_dim, action_dim=action_dim)
 
 if args.load:
     agent.load(args.load)

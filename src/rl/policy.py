@@ -4,7 +4,7 @@ from torch.distributions import Normal
 
 
 class PolicyNetwork(nn.Module):
-    def __init__ (self, input_dim: int = 6, output_dim: int = 3):
+    def __init__ (self, input_dim: int, output_dim: int):
         super().__init__()
         self.network = nn.Sequential(
             nn.Linear(input_dim, 128),

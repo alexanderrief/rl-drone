@@ -2,7 +2,7 @@ import torch as T
 import torch.nn as nn
 
 class ValueNetwork(nn.Module):
-    def __init__ (self, input_dim: int = 6):
+    def __init__ (self, input_dim: int):
         super().__init__()
         self.network = nn.Sequential(
             nn.Linear(input_dim, 128),

@@ -13,8 +13,8 @@ args = parser.parse_args()
 EnvClass = VisualFollowMarkerEnv if args.visual else FollowMarkerEnv
 env = EnvClass(gui=True)
 
-obs_dim = 3 if args.visual else 6
-action_dim = 3
+obs_dim    = 3 if args.visual else 6
+action_dim = 4 if args.visual else 3
 
 agent = Agent(env, obs_dim=obs_dim, action_dim=action_dim)
 

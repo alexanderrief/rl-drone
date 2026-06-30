@@ -181,10 +181,10 @@ class VisualFollowMarkerEnv(BaseAviary):
         """
         Define the continuous action space.
         Returns:
-        - Box, shape (3,), dtype = float32
-        - Each action is a relative position offset [dx, dy, dz] [m].
+        - Box, shape (4,), dtype = float32
+        - [dx, dy, dz] relative position offset [m] + dyaw yaw delta [rad].
         """
-        return Box(low=np.array([-1, -1, -1]), high=np.array([1, 1, 1]), dtype=np.float32)
+        return Box(low=np.array([-1, -1, -1, -0.1]), high=np.array([1, 1, 1, 0.1]), dtype=np.float32)
     
     def _observationSpace(self):
         """
@@ -199,17 +199,18 @@ class VisualFollowMarkerEnv(BaseAviary):
         """
         Convert a relative position offset into motor RPMs via PID control.
         Args:
-        - action (np.ndarray, shape (3,)) : relative position offset [dx, dy, dz] [m].
+        - action (np.ndarray, shape (4,)) : relative position offset [dx, dy, dz] [m] + yaw delta [rad].
         Returns:
         - rpm (np.ndarray, shape (4,)) : target RPMs for each rotor.
         """
         state       = self._getDroneStateVector(0)
-        destination = state[0:3] + action
+        destination = state[0:3] + action[:3]
         next_pos    = self._calculateNextStep(
             current_position=state[0:3],
             destination=destination,
             step_size=0.05, #type: ignore[arg-type]
         )
+        target_yaw = state[9] + action[3]
         rpm, _, _ = self.ctrl.computeControl(
             control_timestep=self.CTRL_TIMESTEP,
             cur_pos=state[0:3],
@@ -217,6 +218,7 @@ class VisualFollowMarkerEnv(BaseAviary):
             cur_vel=state[10:13],
             cur_ang_vel=state[13:16],
             target_pos=next_pos,
+            target_rpy=np.array([0, 0, target_yaw]),
         )
         return rpm
 
