@@ -4,8 +4,8 @@ from src.rl.agent import Agent
 from src.sim.env.visual_follow_marker import VisualFollowMarkerEnv
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--run",  type=str, default=None, help="Name for this training run")
-parser.add_argument("--load", type=str, default=None, help="Checkpoint to load from")
+parser.add_argument("-r", "--run",  type=str, default=None, help="Name for this training run")
+parser.add_argument("-l", "--load", type=str, default=None, help="Checkpoint to load from")
 args = parser.parse_args()
 
 epochs       = 501
