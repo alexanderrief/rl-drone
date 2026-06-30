@@ -2,18 +2,22 @@ import argparse
 import matplotlib.pyplot as plt
 from src.rl.agent import Agent
 from src.sim.env.follow_marker import FollowMarkerEnv
+from src.sim.env.visual_follow_marker import VisualFollowMarkerEnv
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--run",  type=str, default=None, help="Name for this training run")
-parser.add_argument("--load", type=str, default=None, help="Checkpoint to load from")
+parser.add_argument("-r", "--run",    type=str,  default=None,  help="Name for this training run")
+parser.add_argument("-l", "--load",   type=str,  default=None,  help="Checkpoint to load from")
+parser.add_argument("-v", "--visual", action="store_true",      help="Use VisualFollowMarkerEnv")
 args = parser.parse_args()
 
 epochs       = 500
 batch_epochs = 4
 
+EnvClass = VisualFollowMarkerEnv if args.visual else FollowMarkerEnv
+obs_dim  = 3 if args.visual else 6
 
-env   = FollowMarkerEnv()
-agent = Agent(env, obs_dim=6, action_dim=3)
+env   = EnvClass()
+agent = Agent(env, obs_dim=obs_dim, action_dim=3)
 
 if args.load:
     agent.load(args.load)
