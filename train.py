@@ -13,7 +13,7 @@ batch_epochs = 4
 
 
 env   = FollowMarkerEnv()
-agent = Agent(env)
+agent = Agent(env, obs_dim=6, action_dim=3)
 
 if args.load:
     agent.load(args.load)

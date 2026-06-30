@@ -7,13 +7,13 @@ from src.rl.buffer import Buffer
 from src.rl.policy import PolicyNetwork
 from src.rl.value import ValueNetwork
 from src.sim.env.follow_marker import FollowMarkerEnv
-
+from src.sim.env.visual_follow_marker  import VisualFollowMarkerEnv
 
 class Agent:
     def __init__(self,
-                 env:          FollowMarkerEnv,
-                 obs_dim:      int   = 6,
-                 action_dim:   int   = 3,
+                 env:          FollowMarkerEnv | VisualFollowMarkerEnv,
+                 obs_dim:      int,
+                 action_dim:   int,
                  epsilon:      float = 0.1,
                  gamma:        float = 0.95,
                  gae_lambda:   float = 0.95,
@@ -221,7 +221,6 @@ class Agent:
     f"  │  Mean Value     {mean_value:+8.3f}    │\n"
     f"  │  Entropy        {entropy:8.3f}    │\n"
     f"  │  Crashes        {crashes:8d}    │\n"
-    f"  │  Mean Ep. Len {mean_episode_len:8.0f} steps│\n"
     f"  └─────────────────────────────┘"
 )
 

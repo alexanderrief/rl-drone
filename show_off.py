@@ -3,16 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src.rl.agent import Agent
 from src.sim.env.follow_marker import FollowMarkerEnv
+from src.sim.env.visual_follow_marker import VisualFollowMarkerEnv
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--load", type=str, default=None, help="Parameters to load")
+parser.add_argument("-l", "--load", type=str, default=None, help="Parameters to load")
+parser.add_argument("-v", "--visual", action="store_true", help="Use VisualFollowMarkerEnv")
 args = parser.parse_args()
 
-env = FollowMarkerEnv(gui=True)
+EnvClass = VisualFollowMarkerEnv if args.visual else FollowMarkerEnv
+env = EnvClass(gui=True)
 
-agent = Agent(env, obs_dim=6, action_dim=3,
-              epsilon=0.1, gamma=0.95, gae_lambda=0.95,
-              buffer_size=2048, batch_size=64, lr=3e-4)
+obs_dim = 3 if args.visual else 6
+action_dim = 3
+
+agent = Agent(env, obs_dim=obs_dim, action_dim=action_dim)
+
 path = agent.load(args.load)
 agent.policy.eval()
 
