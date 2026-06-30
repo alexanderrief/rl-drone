@@ -1,7 +1,7 @@
 import argparse
 import matplotlib.pyplot as plt
 from src.rl.agent import Agent
-from sim.env.follow_marker import FollowMarkerEnv
+from src.sim.env.follow_marker import FollowMarkerEnv
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--run",  type=str, default=None, help="Name for this training run")
