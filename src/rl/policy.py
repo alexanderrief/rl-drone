@@ -4,12 +4,12 @@ from torch.distributions import Normal
 
 
 class PolicyNetwork(nn.Module):
-    def __init__ (self, input_dim: int = 6, output_dim: int = 3):
+    def __init__(self, input_dim: int, output_dim: int):
         super().__init__()
         self.network = nn.Sequential(
             nn.Linear(input_dim, 128),
             nn.ReLU(),
-            nn.Linear(128,128),
+            nn.Linear(128, 128),
             nn.ReLU(),
             nn.Linear(128, output_dim),
         )
@@ -17,14 +17,11 @@ class PolicyNetwork(nn.Module):
 
     def forward(self, obs: T.Tensor) -> Normal:
         """
-        Compute the policy distribution pi(a|s) for a given observation.
+        Returns a Normal distribution over actions given an observation.
         Args:
-        - obs (T.Tensor, shape (batch, 6)) : observation vector.
+        - obs (T.Tensor, shape (batch, input_dim)) : observation vector.
         Returns:
-        - Normal distribution over actions, shape (batch, 3).
+        - Normal distribution over actions, shape (batch, output_dim).
         """
         mean = self.network(obs)
-        log_std = self.log_std
-        return Normal(mean, T.exp(log_std))
-
-        
+        return Normal(mean, T.exp(self.log_std))

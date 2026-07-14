@@ -1,4 +1,3 @@
-import os
 import numpy as np
 from gymnasium.spaces import Box
 from gym_pybullet_drones.envs.BaseAviary import BaseAviary

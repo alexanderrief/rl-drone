@@ -7,11 +7,10 @@ from src.rl.buffer import Buffer
 from src.rl.policy import PolicyNetwork
 from src.rl.value import ValueNetwork
 from src.sim.env.follow_marker import FollowMarkerEnv
-from src.sim.env.visual_follow_marker  import VisualFollowMarkerEnv
 
 class Agent:
     def __init__(self,
-                 env:          FollowMarkerEnv | VisualFollowMarkerEnv,
+                 env:          FollowMarkerEnv,
                  obs_dim:      int,
                  action_dim:   int,
                  epsilon:      float = 0.1,
@@ -25,17 +24,17 @@ class Agent:
         """
         Initialize the PPO agent.
         Args:
-        - env          (FollowMarkerEnvEnv) : the simulation environment.
-        - obs_dim      (int)             : dimension of the observation vector.
-        - action_dim   (int)             : dimension of the action vector.
-        - epsilon      (float)           : PPO clip range for the policy update.
-        - gamma        (float)           : discount factor for future rewards.
-        - gae_lambda   (float)           : smoothing factor for GAE advantage estimation.
-        - buffer_size  (int)             : number of transitions to collect before each update.
-        - batch_size   (int)             : number of transitions per mini-batch.
-        - lr           (float)           : learning rate for both policy and value optimizer.
-        - entropy_coef (float)           : weight of the entropy bonus in the policy loss.
-        - device       (str)             : target device; falls back to "cpu" if CUDA is unavailable.
+        - env          (FollowMarkerEnv) : the simulation environment.
+        - obs_dim      (int)   : dimension of the observation vector.
+        - action_dim   (int)   : dimension of the action vector.
+        - epsilon      (float) : PPO clip range for the policy update.
+        - gamma        (float) : discount factor for future rewards.
+        - gae_lambda   (float) : smoothing factor for GAE advantage estimation.
+        - buffer_size  (int)   : number of transitions to collect before each update.
+        - batch_size   (int)   : number of transitions per mini-batch.
+        - lr           (float) : learning rate for both policy and value optimizer.
+        - entropy_coef (float) : weight of the entropy bonus in the policy loss.
+        - device       (str)   : target device; falls back to "cpu" if CUDA is unavailable.
         """
         self.env          = env
         self.epsilon      = epsilon
@@ -57,9 +56,9 @@ class Agent:
         """
         Select a deterministic action for a given observation.
         Args:
-        - obs (np.ndarray, shape (6,)) : observation vector.
+        - obs (np.ndarray, shape (obs_dim,)) : observation vector.
         Returns:
-        - np.ndarray, shape (3,) : mean action from the policy distribution.
+        - np.ndarray, shape (action_dim,) : mean action from the policy distribution.
         """
         with T.no_grad():
             obs_t = T.tensor(obs, dtype=T.float32).to(self.device)
@@ -134,7 +133,6 @@ class Agent:
         - batch_epochs (int) : number of passes over the buffer per update.
         """
         advantages = self.compute_advantages(self.buffer.rewards, self.buffer.values, self.buffer.dones)
-        # Standardize advantages to zero mean and unit variance.
         standard_advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         advantages = advantages.to(self.device)
         standard_advantages = standard_advantages.to(self.device)
@@ -191,7 +189,7 @@ class Agent:
         - run_name (str, optional) : folder name under parameters/. Defaults to the most recent run.
         """
         if run_name:
-            path = f"parameters/{run_name}"
+            path = run_name if os.path.exists(run_name) else f"parameters/{run_name}"
         else:
             if not os.path.exists("parameters") or not os.listdir("parameters"):
                 print("No parameters found, starting fresh")
@@ -199,8 +197,8 @@ class Agent:
             runs = sorted(os.listdir("parameters"), key=lambda r: os.path.getmtime(f"parameters/{r}"))
             path = f"parameters/{runs[-1]}"
         print(f"Loading from {path}")
-        self.policy.load_state_dict(T.load(f"{path}/policy.pt"))
-        self.value.load_state_dict(T.load(f"{path}/value.pt"))
+        self.policy.load_state_dict(T.load(f"{path}/policy.pt", weights_only=True))
+        self.value.load_state_dict(T.load(f"{path}/value.pt",  weights_only=True))
         return path
 
     def info(self, epoch: int, total_epochs: int) -> None:

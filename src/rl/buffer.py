@@ -29,8 +29,8 @@ class Buffer:
         """
         Store a single transition from the environment.
         Args:
-        - obs      : observation vector, shape (6,).
-        - action   : action taken, shape (3,).
+        - obs      : observation vector.
+        - action   : action taken.
         - log_prob : log probability of the action under the current policy.
         - value    : estimated state value V(s).
         - reward   : scalar reward received.
@@ -47,8 +47,8 @@ class Buffer:
         """
         Convert stored transitions into shuffled mini-batches for PPO update.
         Returns:
-        - observations (T.Tensor, shape (buffer_size, 6))
-        - actions      (T.Tensor, shape (buffer_size, 3))
+        - observations (T.Tensor, shape (buffer_size, obs_dim))
+        - actions      (T.Tensor, shape (buffer_size, action_dim))
         - log_probs    (T.Tensor, shape (buffer_size,))
         - values       (T.Tensor, shape (buffer_size,))
         - rewards      (T.Tensor, shape (buffer_size,))
